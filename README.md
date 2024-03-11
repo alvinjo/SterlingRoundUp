@@ -24,7 +24,7 @@
 ## User Workflow
 1. Uncle Iroh wants to round up all the transactions from the past week and add it to a specific savings goal
 2. Iroh sends a request to this Round Up API providing his account and savings space id
-3. The Round Up service takes this request, creates an asynch job and responds with a 202 and a job id
+3. The Round Up service takes this request, creates an asynch job (check if existing in DLQ) and responds with a 202 and a job id
 4. The job processes asynchronously. It fetches Irohs transactions from the last week, rounds them up, calculates the difference and makes the required transaction from his account
 5. Once complete, the job status is updated.
 6. Uncle Iroh wants to check if the round up has completed and so makes a request to the jobs endpoint.
@@ -32,10 +32,11 @@
 
 ## API Design
 
-| HTTP Method | Endpoint           | Example Request Body                               | Example Response Body                 |
-|-------------|--------------------|----------------------------------------------------|---------------------------------------|
-| GET         | /api/v1/roundupjob |                                                    | {<br/>&emsp;"status":"complete"<br/>} |
-| POST        | /api/v1/roundupjob | {<br/>&emsp;"start": "",<br/>&emsp;"end": ""<br/>} |                                       |
+| HTTP Method | Endpoint           | Example Request Body                                                                                 | Example Response Body                 |
+|-------------|--------------------|------------------------------------------------------------------------------------------------------|---------------------------------------|
+| GET         | /api/v1/roundupjob |                                                                                                      | {<br/>&emsp;"status":"complete"<br/>} |
+| POST        | /api/v1/roundupjob | {<br/>&emsp;"start": "",<br/>&emsp;"end": ""<br/>}                                                   |                                       |
+| PATCH       | /api/v1/roundupjob | {<br/>&emsp;"jobIds": [<br/>&emsp;&emsp;"2024-03-23",<br/>&emsp;&emsp;"2024-03-24"<br/>&emsp;]<br/>} |                                       |
 
 
 Not using the /account endpoints since this implies that the service will be fetching the users accounts.
@@ -72,24 +73,24 @@ RoundUpJob table design
 
 
 ## Notable Edge Cases
-
 - We receive 0 transactions.
 - We receive a transaction where money has come into the account instead of out.
 - Thousands of transactions received from the week (careful memory!).
   - process each day asynch using sqs messages.
   - return response to user with job ids and continue processing asynch.
   - add endpoint for checking job status (webhook?)
+  - ...beginning to consider the alternative approach of processing the week as a whole and having auto-scaling policies trigger for large jobs. 
 - Fail to round up a transaction.
   - Consider retries, message DLQ.
 - We call round up on the same transaction.
   - Each request must be idempotent. This requires persistent storage for keeping track.
 - We receive transactions that have not been settled.
+  - We create the job but send to DLQ. An incorrect round up is worse than a failed round up (from my perspective as a user)
 - What happens when the total round up amount is more than the accounts current balance?
   - Put message in DLQ or delete, we do not want a scenario where the user is low on funds and cannot use their account because of queued messages being processed. 
   - Each job is a days worth of transactions, so it is important not to interfere with this potential living fund. 
   - DLQ re-driving is an issue since we may process stale transaction data. (What is stale data? Just unsettled transactions?)
-    - We shouldn't have the message consumer do a fresh fetch each time since it doesn't scale well, and we could hit our api rate limit.
-    - 
+    - We shouldn't have the message consumer do a fresh fetch each time since it does not scale well, and we could hit our api rate limit. Because of this, transaction data should stay in the message.
 
 
 ## Tech Decisions

@@ -1,4 +1,4 @@
-package com.alvin.RoundUp;
+package com.alvin;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

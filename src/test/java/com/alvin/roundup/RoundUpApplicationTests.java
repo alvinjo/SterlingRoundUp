@@ -1,4 +1,4 @@
-package com.alvin.RoundUp;
+package com.alvin.roundup;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

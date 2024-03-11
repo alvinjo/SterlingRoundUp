@@ -1,4 +1,4 @@
-package com.alvin.RoundUp.repo.domain;
+package com.alvin.roundup.repo.domain;
 
 import lombok.Getter;
 import lombok.Setter;
