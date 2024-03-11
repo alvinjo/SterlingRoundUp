@@ -85,7 +85,9 @@ RoundUpJob table design
 - We call round up on the same transaction.
   - Each request must be idempotent. This requires persistent storage for keeping track.
 - We receive transactions that have not been settled.
-  - We create the job but send to DLQ. An incorrect round up is worse than a failed round up (from my perspective as a user)
+  - We create the job but send to DLQ. An incorrect round up is worse than a failed round up (from my perspective as a user).
+  - I actually don't want savings goal expense items from the endpoint (/api/v2/feed/account/{accountUid}/category/{categoryUid}/transactions-between)
+    - So will instead be using the settled-transactions-between endpoint for main account expenses
 - What happens when the total round up amount is more than the accounts current balance?
   - Put message in DLQ or delete, we do not want a scenario where the user is low on funds and cannot use their account because of queued messages being processed. 
   - Each job is a days worth of transactions, so it is important not to interfere with this potential living fund. 

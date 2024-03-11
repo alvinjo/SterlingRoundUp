@@ -31,6 +31,8 @@ public class RoundUpJob {
 
     private String categoryId;
 
+    private String transferId;
+
 //    private FeedItems transactions;
 
     private JobStatus status;

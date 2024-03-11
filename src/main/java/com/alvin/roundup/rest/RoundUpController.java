@@ -8,6 +8,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
@@ -28,13 +29,8 @@ public class RoundUpController {
         return new HttpEntity<>(roundUpService.getRoundUpJob(jobId));
     }
 
-    @GetMapping("/test")
-    public HttpEntity<RoundUpJob> test(){
-        return new HttpEntity<>(roundUpService.test());
-    }
-
     @PostMapping
-    public HttpEntity<Set<LocalDate>> createRoundUpJobs(@RequestBody RoundUpJobRequest jobRequest) {
+    public HttpEntity<Set<LocalDate>> createRoundUpJobs(@RequestBody RoundUpJobRequest jobRequest) throws IOException, InterruptedException {
         return new HttpEntity<>(roundUpService.createRoundUpJobs(jobRequest));
     }
 

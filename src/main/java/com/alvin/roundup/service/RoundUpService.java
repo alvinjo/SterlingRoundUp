@@ -1,25 +1,29 @@
 package com.alvin.roundup.service;
 
+import com.alvin.common.DateUtils;
 import com.alvin.roundup.repo.RoundUpRepo;
 import com.alvin.roundup.repo.domain.RoundUpJob;
 import com.alvin.roundup.repo.domain.RoundUpJobRequest;
 import com.alvin.roundup.repo.domain.RoundUpMessage;
 import com.alvin.starling.domain.FeedItems;
-import com.alvin.starling.service.TransactionService;
+import com.alvin.starling.service.TransactionFeedService;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.core.JmsMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import static com.alvin.roundup.service.JobListener.ROUND_UP_JOB_DLQ;
-import static com.alvin.roundup.service.JobListener.ROUND_UP_JOB_QUEUE;
+import static com.alvin.roundup.service.RoundUpJobListener.ROUND_UP_JOB_DLQ;
+import static com.alvin.roundup.service.RoundUpJobListener.ROUND_UP_JOB_QUEUE;
 
 @Service
 @NoArgsConstructor
@@ -27,14 +31,14 @@ public class RoundUpService {
 
     private RoundUpRepo repo;
 
-    private TransactionService transactionService;
+    private TransactionFeedService transactionFeedService;
 
     private JmsMessagingTemplate jmsTemplate;
 
     @Autowired
-    public RoundUpService(RoundUpRepo repo, TransactionService transactionService, JmsMessagingTemplate jmsTemplate) {
+    public RoundUpService(RoundUpRepo repo, TransactionFeedService transactionFeedService, JmsMessagingTemplate jmsTemplate) {
         this.repo = repo;
-        this.transactionService = transactionService;
+        this.transactionFeedService = transactionFeedService;
         this.jmsTemplate = jmsTemplate;
     }
 
@@ -47,46 +51,56 @@ public class RoundUpService {
         }
     }
 
-    public Set<LocalDate> createRoundUpJobs(RoundUpJobRequest jobRequest) {
-        if(!validDate(jobRequest.getStartDate()) || !validDate(jobRequest.getEndDate())){
-            throw new RuntimeException(""); //TODO double check exceptions
-        }
-        if(!StringUtils.hasText(jobRequest.getAccountId()) || !StringUtils.hasText(jobRequest.getCategoryId())){
-            throw new RuntimeException(""); //TODO double check exceptions
-        }
+    public Set<LocalDate> createRoundUpJobs(RoundUpJobRequest jobRequest) throws IOException, InterruptedException {
+        validateRoundUpJobRequest(jobRequest);
 
         LocalDateTime startDateTime = LocalDateTime.of(LocalDate.parse(jobRequest.getStartDate()), LocalTime.MIN);
         LocalDateTime endDateTime = LocalDateTime.of(LocalDate.parse(jobRequest.getEndDate()), LocalTime.MAX);
 
         //split range into days of format yyyy-MM-dd
-        List<LocalDate> dates = generateDateList(LocalDate.parse(jobRequest.getStartDate()), LocalDate.parse(jobRequest.getEndDate()));
+        List<LocalDate> dates = DateUtils.generateDateList(LocalDate.parse(jobRequest.getStartDate()), LocalDate.parse(jobRequest.getEndDate()));
 
-        //create and populate a job map calculating round up totals
-        Map<LocalDate, RoundUpJob> jobTransactionsMap = new HashMap<>();
-        dates.forEach(date -> jobTransactionsMap.put(date, new RoundUpJob(date.toString(), jobRequest.getAccountId(), jobRequest.getCategoryId())));
+        //create and initialise a job map for calculating our round up totals
+        Map<LocalDate, RoundUpJob> jobMap = initialiseJobMap(dates, jobRequest.getAccountId(), jobRequest.getCategoryId());
 
         //perform transactions fetch on entire range
-        FeedItems feedItems = transactionService.fetchTransactionsWithinRange(startDateTime, endDateTime);
+        FeedItems feedItems = transactionFeedService.fetchTransactionsWithinRange(startDateTime, endDateTime, jobRequest.getAccountId());
 
-        //calculate round up and update job map
+        //calculate round up for each transaction and update job map
+        updateJobMapWithTransactions(jobMap, feedItems);
+
+        //create message for each job and send to their appropriate queues
+        createAndSendMessages(jobMap);
+
+        return jobMap.keySet();
+    }
+
+    private void validateRoundUpJobRequest(RoundUpJobRequest request) {
+        if (!DateUtils.validDate(request.getStartDate()) || !DateUtils.validDate(request.getEndDate())) {
+            throw new IllegalArgumentException("Invalid date range");
+        }
+        if (!StringUtils.hasText(request.getAccountId()) || !StringUtils.hasText(request.getCategoryId())) {
+            throw new IllegalArgumentException("Account ID and Category ID are required");
+        }
+    }
+
+    private Map<LocalDate, RoundUpJob> initialiseJobMap(List<LocalDate> dates, String accountId, String categoryId){
+        Map<LocalDate, RoundUpJob> jobMap = new HashMap<>();
+        dates.forEach(date -> jobMap.put(date, new RoundUpJob(date.toString(), accountId, categoryId)));
+        return jobMap;
+    }
+
+    private void updateJobMapWithTransactions(Map<LocalDate, RoundUpJob> jobMap, FeedItems feedItems) {
         for (FeedItems.FeedItem transaction : feedItems.getFeedItems()) {
             LocalDate transactionDate = transaction.getTransactionTime().toLocalDate();
 
             if(FeedItems.FeedItem.Status.SETTLED == transaction.getStatus()) {
                 long transactionSaving = roundUp(transaction.getAmount().getMinorUnits());
-                jobTransactionsMap.get(transactionDate).addValueToRoundUp(transactionSaving);
+                jobMap.get(transactionDate).addValueToRoundUp(transactionSaving);
             } else {
-                jobTransactionsMap.get(transactionDate).setHasUnsettledTransactions(true);
+                jobMap.get(transactionDate).setHasUnsettledTransactions(true);
             }
         }
-
-        //create message for each job and send to their appropriate queues
-        jobTransactionsMap.values().forEach(job -> {
-            String destinationQueue = job.isHasUnsettledTransactions() ? ROUND_UP_JOB_DLQ : ROUND_UP_JOB_QUEUE;
-            jmsTemplate.convertAndSend(destinationQueue, new RoundUpMessage(job));
-        });
-
-        return jobTransactionsMap.keySet();
     }
 
     private long roundUp(long value) {
@@ -94,31 +108,11 @@ public class RoundUpService {
         return roundedUpValue - value;
     }
 
-    private boolean validDate(String date) {
-        try {
-            DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(date);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    private List<LocalDate> generateDateList(LocalDate startDate, LocalDate endDate) {
-        List<LocalDate> dateList = new ArrayList<>();
-
-        // Iterate through each date in the range
-        LocalDate currentDate = startDate;
-        while (!currentDate.isAfter(endDate)) {
-            dateList.add(currentDate);
-            currentDate = currentDate.plusDays(1);
-        }
-
-        return dateList;
-    }
-
-    public RoundUpJob test(){
-        repo.save(new RoundUpJob().setJobId(("2024-01-01")).setStatus(RoundUpJob.JobStatus.COMPLETE));
-        return repo.findByJobId(("2024-01-01"));
+    private void createAndSendMessages(Map<LocalDate, RoundUpJob> jobMap) {
+        jobMap.values().forEach(job -> {
+            String destinationQueue = job.isHasUnsettledTransactions() ? ROUND_UP_JOB_DLQ : ROUND_UP_JOB_QUEUE;
+            jmsTemplate.convertAndSend(destinationQueue, new RoundUpMessage(job));
+        });
     }
 
 }

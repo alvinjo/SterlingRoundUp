@@ -1,0 +1,43 @@
+package com.alvin.roundup.service;
+
+
+import com.alvin.roundup.repo.domain.RoundUpMessage;
+import com.alvin.starling.service.SavingsService;
+import org.pmw.tinylog.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jms.annotation.JmsListener;
+import org.springframework.jms.core.JmsMessagingTemplate;
+import org.springframework.stereotype.Component;
+
+@Component
+public class RoundUpJobListener {
+
+    public static final String ROUND_UP_JOB_QUEUE = "ROUND_UP_JOB_QUEUE";
+    public static final String ROUND_UP_JOB_DLQ = "DLQ.ROUND_UP_JOB_QUEUE";
+
+    private JmsMessagingTemplate jmsTemplate;
+    private SavingsService savingsService;
+
+    @Autowired
+    public RoundUpJobListener(JmsMessagingTemplate jmsTemplate, SavingsService savingsService) {
+        this.savingsService = savingsService;
+        this.jmsTemplate = jmsTemplate;
+    }
+
+    @JmsListener(destination = ROUND_UP_JOB_QUEUE)
+    public void receiveRoundUpJob(RoundUpMessage message) {
+        Logger.info("Picked up message with Id: {}", message.getRoundUpJob().getJobId());
+
+        if (!savingsService.performSavingsGoalTransfer(message.getRoundUpJob())) {
+            jmsTemplate.convertAndSend(ROUND_UP_JOB_DLQ, message);
+        }
+    }
+
+    public void redriveRoundUpJobs() {
+        var message = jmsTemplate.receiveAndConvert(ROUND_UP_JOB_DLQ, RoundUpMessage.class);
+        if(message != null) {
+            savingsService.performSavingsGoalTransfer(message.getRoundUpJob());
+        }
+    }
+
+}

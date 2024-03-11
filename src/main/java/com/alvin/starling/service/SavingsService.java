@@ -13,15 +13,16 @@ import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.UUID;
 
 @Service
 public class SavingsService {
 
-    @Value("${starling.baseurl}")
+    @Value("${starling.base.url}")
     private String starlingBaseUrl;
 
-    @Value("${starling.account.url}")
-    private String accountUrl;
+    @Value("${starling.account.path}")
+    private String accountPath;
 
     private HttpClient httpClient;
 
@@ -30,24 +31,25 @@ public class SavingsService {
         this.httpClient = httpClient;
     }
 
-    public void performSavingsGoalTransfer(RoundUpJob roundUpJob) {
+    //TODO retryable https://www.baeldung.com/spring-retry
+    public boolean performSavingsGoalTransfer(RoundUpJob roundUpJob) {
         var jsonMapper = new Gson();
         try {
-            String transferId = "";
-            var transferUri = UriComponentsBuilder.fromPath(starlingBaseUrl).path(accountUrl)
+            String transferId = String.valueOf(UUID.randomUUID().toString()).replace("-", "");
+            roundUpJob.setTransferId(transferId);
+
+            var savingsTransferUri = UriComponentsBuilder.fromPath(starlingBaseUrl).path(accountPath)
                     .pathSegment(roundUpJob.getAccountId(), "savings-goals", roundUpJob.getCategoryId(), "add-money", transferId).build().toUri();
 
             var body = new TopUpRequestV2(roundUpJob.getCurrency(), roundUpJob.getTransferValue());
 
-            var request = HttpRequest.newBuilder(transferUri)
+            var request = HttpRequest.newBuilder(savingsTransferUri)
                     .POST(HttpRequest.BodyPublishers.ofString(jsonMapper.toJson(body))).build();
 
             var clientResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             var transferResponse = jsonMapper.fromJson(clientResponse.body(), SavingsGoalTransferResponseV2.class);
 
-            if(!transferResponse.isSuccess()){
-                //TODO
-            }
+            return transferResponse.isSuccess();
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e); //TODO
         }
