@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/v1/roundup")
@@ -24,7 +25,7 @@ public class RoundUpController {
 
     @GetMapping("/{jobId}")
     public HttpEntity<RoundUpJob> getRoundUpJob(@PathVariable("jobId") String jobId) {
-        return new HttpEntity<>(roundUpService.getRoundUpJob(LocalDate.parse(jobId)));
+        return new HttpEntity<>(roundUpService.getRoundUpJob(jobId));
     }
 
     @GetMapping("/test")
@@ -33,7 +34,7 @@ public class RoundUpController {
     }
 
     @PostMapping
-    public HttpEntity<List<String>> createRoundUpJobs(@RequestBody RoundUpJobRequest jobRequest) {
+    public HttpEntity<Set<LocalDate>> createRoundUpJobs(@RequestBody RoundUpJobRequest jobRequest) {
         return new HttpEntity<>(roundUpService.createRoundUpJobs(jobRequest));
     }
 

@@ -9,6 +9,6 @@ import java.time.LocalDate;
 @Repository
 public interface RoundUpRepo extends JpaRepository<RoundUpJob, String> {
 
-    RoundUpJob findByJobId(LocalDate jobId);
+    RoundUpJob findByJobId(String jobId);
 
 }

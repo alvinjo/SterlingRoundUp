@@ -4,6 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -11,6 +12,7 @@ import java.util.List;
 
 @Getter
 @Setter
+@Accessors(chain = true)
 public class FeedItems implements Serializable {
 
     private List<FeedItem> feedItems;
@@ -18,7 +20,8 @@ public class FeedItems implements Serializable {
     @Getter
     @Setter
     @Entity
-    public class FeedItem {
+    @Accessors(chain = true)
+    public static class FeedItem {
         @Id
         private String feedItemUid;
         private String categoryUid;
@@ -31,7 +34,7 @@ public class FeedItems implements Serializable {
         private String retryAllocationUntilTime;
         private String source;
         private String sourceSubType;
-        private String status;
+        private Status status;
         private String transactingApplicationUserUid;
         private String counterPartyType;
         private String counterPartyUid;
@@ -51,5 +54,17 @@ public class FeedItems implements Serializable {
         private boolean hasAttachment;
         private boolean hasReceipt;
 //    private BatchPaymentDetails batchPaymentDetails;
+
+        public static enum Status {
+            UPCOMING,
+            UPCOMING_CANCELLED,
+            PENDING,
+            REVERSED,
+            SETTLED,
+            DECLINED,
+            REFUNDED,
+            RETRYING,
+            ACCOUNT_CHECK
+        }
     }
 }

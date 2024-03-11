@@ -1,19 +1,16 @@
 package com.alvin.roundup.repo.domain;
 
-import com.alvin.starling.domain.FeedItems;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
-import java.time.LocalDate;
-import java.util.List;
 
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
 @Accessors(chain = true)
 public class RoundUpJob {
 
@@ -21,18 +18,30 @@ public class RoundUpJob {
         COMPLETE,
     }
 
-    @Id
-    private LocalDate jobId;
+    public RoundUpJob(String jobId, String accountId, String categoryId) {
+        this.jobId = jobId;
+        this.accountId = accountId;
+        this.categoryId = categoryId;
+    }
 
-    private FeedItems transactions;
+    @Id
+    private String jobId;
+
+    private String accountId;
+
+    private String categoryId;
+
+//    private FeedItems transactions;
 
     private JobStatus status;
 
-    private long roundUpValue; //not persisted
+    private long transferValue; //not persisted
+
+    private String currency; //not persisted
 
     private boolean hasUnsettledTransactions; //not persisted
 
     public void addValueToRoundUp(long value) {
-        roundUpValue += value;
+        transferValue += value;
     }
 }
