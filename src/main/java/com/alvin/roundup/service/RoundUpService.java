@@ -45,7 +45,7 @@ public class RoundUpService {
     public RoundUpJob getRoundUpJob(String jobId) {
         try {
             LocalDate.parse(jobId);
-            return repo.findByJobId(jobId); //TODO what is IEEE rest response for not found? what does repo return if not found?
+            return repo.findById(jobId).orElseThrow(); //TODO what is IEEE rest response for not found? what does repo return if not found?
         } catch (Exception e){
             return null;
         }
@@ -97,8 +97,8 @@ public class RoundUpService {
         Map<LocalDate, RoundUpJob> jobMap = new HashMap<>();
         dates.forEach(date -> {
             //check if we have already processed this job
-            var existingJob = repo.findByJobId(date.toString());
-            if(existingJob == null || RoundUpJob.JobStatus.COMPLETE != existingJob.getStatus()) {
+            var existingJob = repo.findById(date.toString());
+            if(existingJob.isEmpty() || RoundUpJob.JobStatus.COMPLETE != existingJob.get().getStatus()) {
                 jobMap.put(date, new RoundUpJob(date.toString(), accountId, categoryId));
             }
         });

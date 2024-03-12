@@ -1,5 +1,6 @@
 package com.alvin.starling.service;
 
+import com.alvin.common.SecurityUtils;
 import com.alvin.roundup.repo.domain.RoundUpJob;
 import com.alvin.starling.domain.SavingsGoalTransferResponseV2;
 import com.alvin.starling.domain.TopUpRequestV2;
@@ -28,11 +29,14 @@ public class SavingsService {
     @Value("${user.access.token}")
     private String accessToken;
 
+    private SecurityUtils securityUtils;
+
     private HttpClient httpClient;
 
     @Autowired
-    public SavingsService(HttpClient httpClient) {
+    public SavingsService(HttpClient httpClient, SecurityUtils securityUtils) {
         this.httpClient = httpClient;
+        this.securityUtils = securityUtils;
     }
 
     //TODO retryable https://www.baeldung.com/spring-retry
@@ -48,7 +52,7 @@ public class SavingsService {
             var body = new TopUpRequestV2(roundUpJob.getCurrency(), roundUpJob.getTransferValue());
 
             var request = HttpRequest.newBuilder(savingsTransferUri)
-                    .header("Authorization", "Bearer " + accessToken)
+                    .header("Authorization", "Bearer " + securityUtils.getUserAccessToken())
                     .POST(HttpRequest.BodyPublishers.ofString(jsonMapper.toJson(body))).build();
 
             var clientResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());

@@ -1,6 +1,7 @@
 package com.alvin.starling.service;
 
 import com.alvin.common.DateUtils;
+import com.alvin.common.SecurityUtils;
 import com.alvin.starling.domain.FeedItems;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,11 +27,14 @@ public class TransactionFeedService {
     @Value("${user.access.token}")
     private String accessToken;
 
+    private SecurityUtils securityUtils;
+
     private HttpClient httpClient;
 
     @Autowired
-    public TransactionFeedService(HttpClient httpClient) {
+    public TransactionFeedService(HttpClient httpClient, SecurityUtils securityUtils) {
         this.httpClient = httpClient;
+        this.securityUtils = securityUtils;
     }
 
     public FeedItems fetchTransactionsWithinRange(LocalDateTime start, LocalDateTime end, String accountId) throws IOException, InterruptedException {
@@ -42,7 +46,7 @@ public class TransactionFeedService {
                 .queryParam("maxTransactionTimestamp", DateUtils.dateTimeToFormattedString(end)).build().toUri();
 
         var request = HttpRequest.newBuilder(transactionsFeedUri)
-                .header("Authorization", "Bearer " + accessToken)
+                .header("Authorization", "Bearer " + securityUtils.getUserAccessToken())
                 .GET().build();
 
         var clientResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());

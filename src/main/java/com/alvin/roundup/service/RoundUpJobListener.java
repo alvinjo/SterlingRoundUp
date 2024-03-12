@@ -26,7 +26,7 @@ public class RoundUpJobListener {
 
     @JmsListener(destination = ROUND_UP_JOB_QUEUE)
     public void receiveRoundUpJob(RoundUpMessage message) {
-        Logger.info("Picked up message with Id: {}", message.getRoundUpJob().getJobId());
+        Logger.info("Picked up message with Id: {}", message.getRoundUpJob().getId());
 
         if (!savingsService.performSavingsGoalTransfer(message.getRoundUpJob())) {
             jmsTemplate.convertAndSend(ROUND_UP_JOB_DLQ, message);
