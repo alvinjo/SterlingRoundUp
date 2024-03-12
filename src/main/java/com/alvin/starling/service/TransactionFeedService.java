@@ -1,8 +1,7 @@
 package com.alvin.starling.service;
 
-import com.alvin.starling.domain.CurrencyAndAmount;
+import com.alvin.common.DateUtils;
 import com.alvin.starling.domain.FeedItems;
-import com.alvin.starling.domain.TopUpRequestV2;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,7 +13,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 public class TransactionFeedService {
@@ -24,6 +22,9 @@ public class TransactionFeedService {
 
     @Value("${starling.feed.path}")
     private String feedPath;
+
+    @Value("${user.access.token}")
+    private String accessToken;
 
     private HttpClient httpClient;
 
@@ -35,12 +36,14 @@ public class TransactionFeedService {
     public FeedItems fetchTransactionsWithinRange(LocalDateTime start, LocalDateTime end, String accountId) throws IOException, InterruptedException {
         var jsonMapper = new Gson();
 
-        var transactionsFeedUri = UriComponentsBuilder.fromPath(starlingBaseUrl).path(feedPath)
+        var transactionsFeedUri = UriComponentsBuilder.fromHttpUrl(starlingBaseUrl).path(feedPath)
                 .pathSegment("account", accountId, "settled-transactions-between")
-                .queryParam("minTransactionTimestamp ", start)
-                .queryParam("maxTransactionTimestamp ", end).build().toUri();
+                .queryParam("minTransactionTimestamp", DateUtils.dateTimeToFormattedString(start))
+                .queryParam("maxTransactionTimestamp", DateUtils.dateTimeToFormattedString(end)).build().toUri();
 
-        var request = HttpRequest.newBuilder(transactionsFeedUri).GET().build();
+        var request = HttpRequest.newBuilder(transactionsFeedUri)
+                .header("Authorization", "Bearer " + accessToken)
+                .GET().build();
 
         var clientResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 

@@ -4,6 +4,7 @@ import com.alvin.roundup.repo.domain.RoundUpJob;
 import com.alvin.starling.domain.SavingsGoalTransferResponseV2;
 import com.alvin.starling.domain.TopUpRequestV2;
 import com.google.gson.Gson;
+import org.pmw.tinylog.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,9 @@ public class SavingsService {
     @Value("${starling.account.path}")
     private String accountPath;
 
+    @Value("${user.access.token}")
+    private String accessToken;
+
     private HttpClient httpClient;
 
     @Autowired
@@ -38,17 +42,19 @@ public class SavingsService {
             String transferId = String.valueOf(UUID.randomUUID().toString()).replace("-", "");
             roundUpJob.setTransferId(transferId);
 
-            var savingsTransferUri = UriComponentsBuilder.fromPath(starlingBaseUrl).path(accountPath)
+            var savingsTransferUri = UriComponentsBuilder.fromHttpUrl(starlingBaseUrl).path(accountPath)
                     .pathSegment(roundUpJob.getAccountId(), "savings-goals", roundUpJob.getCategoryId(), "add-money", transferId).build().toUri();
 
             var body = new TopUpRequestV2(roundUpJob.getCurrency(), roundUpJob.getTransferValue());
 
             var request = HttpRequest.newBuilder(savingsTransferUri)
+                    .header("Authorization", "Bearer " + accessToken)
                     .POST(HttpRequest.BodyPublishers.ofString(jsonMapper.toJson(body))).build();
 
             var clientResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             var transferResponse = jsonMapper.fromJson(clientResponse.body(), SavingsGoalTransferResponseV2.class);
 
+            Logger.info("Transfer success: {}", transferResponse);
             return transferResponse.isSuccess();
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e); //TODO

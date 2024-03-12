@@ -27,10 +27,10 @@ public class FeedItems implements Serializable {
         private String categoryUid;
         private CurrencyAndAmount amount;
         private CurrencyAndAmount sourceAmount;
-        private String direction;
+        private Direction direction;
         private String updatedAt;
-        private LocalDateTime transactionTime;
-        private LocalDateTime settlementTime;
+        private String transactionTime;
+        private String settlementTime;
         private String retryAllocationUntilTime;
         private String source;
         private String sourceSubType;
@@ -55,7 +55,7 @@ public class FeedItems implements Serializable {
         private boolean hasReceipt;
 //    private BatchPaymentDetails batchPaymentDetails;
 
-        public static enum Status {
+        public enum Status {
             UPCOMING,
             UPCOMING_CANCELLED,
             PENDING,
@@ -65,6 +65,10 @@ public class FeedItems implements Serializable {
             REFUNDED,
             RETRYING,
             ACCOUNT_CHECK
+        }
+
+        public enum Direction {
+            IN, OUT
         }
     }
 }

@@ -54,8 +54,8 @@ public class RoundUpService {
     public Set<LocalDate> createRoundUpJobs(RoundUpJobRequest jobRequest) throws IOException, InterruptedException {
         validateRoundUpJobRequest(jobRequest);
 
-        LocalDateTime startDateTime = LocalDateTime.of(LocalDate.parse(jobRequest.getStartDate()), LocalTime.MIN);
-        LocalDateTime endDateTime = LocalDateTime.of(LocalDate.parse(jobRequest.getEndDate()), LocalTime.MAX);
+        LocalDateTime startDateTime = LocalDate.parse(jobRequest.getStartDate()).atStartOfDay();
+        LocalDateTime endDateTime = LocalDate.parse(jobRequest.getEndDate()).atTime(LocalTime.MAX);
 
         //split range into days of format yyyy-MM-dd
         List<LocalDate> dates = DateUtils.generateDateList(LocalDate.parse(jobRequest.getStartDate()), LocalDate.parse(jobRequest.getEndDate()));
@@ -72,6 +72,9 @@ public class RoundUpService {
         //create message for each job and send to their appropriate queues
         createAndSendMessages(jobMap);
 
+        //save the jobs to db
+        saveJobs(jobMap.values().stream().toList());
+
         return jobMap.keySet();
     }
 
@@ -82,21 +85,38 @@ public class RoundUpService {
         if (!StringUtils.hasText(request.getAccountId()) || !StringUtils.hasText(request.getCategoryId())) {
             throw new IllegalArgumentException("Account ID and Category ID are required");
         }
+
+        LocalDateTime startDateTime = LocalDateTime.of(LocalDate.parse(request.getStartDate()), LocalTime.MIN);
+        LocalDateTime endDateTime = LocalDateTime.of(LocalDate.parse(request.getEndDate()), LocalTime.MAX);
+        if(startDateTime.isAfter(endDateTime)) {
+            throw new IllegalArgumentException("Start date cannot be after end date");
+        }
     }
 
     private Map<LocalDate, RoundUpJob> initialiseJobMap(List<LocalDate> dates, String accountId, String categoryId){
         Map<LocalDate, RoundUpJob> jobMap = new HashMap<>();
-        dates.forEach(date -> jobMap.put(date, new RoundUpJob(date.toString(), accountId, categoryId)));
+        dates.forEach(date -> {
+            //check if we have already processed this job
+            var existingJob = repo.findByJobId(date.toString());
+            if(existingJob == null || RoundUpJob.JobStatus.COMPLETE != existingJob.getStatus()) {
+                jobMap.put(date, new RoundUpJob(date.toString(), accountId, categoryId));
+            }
+        });
         return jobMap;
     }
 
     private void updateJobMapWithTransactions(Map<LocalDate, RoundUpJob> jobMap, FeedItems feedItems) {
-        for (FeedItems.FeedItem transaction : feedItems.getFeedItems()) {
-            LocalDate transactionDate = transaction.getTransactionTime().toLocalDate();
+        List<FeedItems.FeedItem> expenses = feedItems.getFeedItems().stream()
+                .filter(item -> FeedItems.FeedItem.Direction.OUT == item.getDirection()).toList();
+
+        for (FeedItems.FeedItem transaction : expenses) {
+            LocalDate transactionDate = LocalDateTime.parse(transaction.getTransactionTime().replace("Z", "")).toLocalDate();
 
             if(FeedItems.FeedItem.Status.SETTLED == transaction.getStatus()) {
+                String currency = transaction.getSourceAmount().getCurrency();
                 long transactionSaving = roundUp(transaction.getAmount().getMinorUnits());
-                jobMap.get(transactionDate).addValueToRoundUp(transactionSaving);
+
+                jobMap.get(transactionDate).setCurrency(currency).addValueToRoundUp(transactionSaving);
             } else {
                 jobMap.get(transactionDate).setHasUnsettledTransactions(true);
             }
@@ -113,6 +133,10 @@ public class RoundUpService {
             String destinationQueue = job.isHasUnsettledTransactions() ? ROUND_UP_JOB_DLQ : ROUND_UP_JOB_QUEUE;
             jmsTemplate.convertAndSend(destinationQueue, new RoundUpMessage(job));
         });
+    }
+
+    private void saveJobs(List<RoundUpJob> jobs) {
+        repo.saveAll(jobs);
     }
 
 }

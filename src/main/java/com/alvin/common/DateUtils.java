@@ -1,6 +1,7 @@
 package com.alvin.common;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,10 @@ public class DateUtils {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public static String dateTimeToFormattedString(LocalDateTime dateTime){
+        return dateTime.format(DateTimeFormatter.ISO_DATE_TIME)+"Z";
     }
 
     public static List<LocalDate> generateDateList(LocalDate startDate, LocalDate endDate) {
