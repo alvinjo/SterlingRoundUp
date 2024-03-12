@@ -24,9 +24,6 @@ public class TransactionFeedService {
     @Value("${starling.feed.path}")
     private String feedPath;
 
-    @Value("${user.access.token}")
-    private String accessToken;
-
     private SecurityUtils securityUtils;
 
     private HttpClient httpClient;

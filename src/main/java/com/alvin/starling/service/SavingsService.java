@@ -26,9 +26,6 @@ public class SavingsService {
     @Value("${starling.account.path}")
     private String accountPath;
 
-    @Value("${user.access.token}")
-    private String accessToken;
-
     private SecurityUtils securityUtils;
 
     private HttpClient httpClient;
