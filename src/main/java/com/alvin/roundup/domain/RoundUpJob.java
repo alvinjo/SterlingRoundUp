@@ -1,4 +1,4 @@
-package com.alvin.roundup.repo.domain;
+package com.alvin.roundup.domain;
 
 import jakarta.persistence.*;
 import lombok.Getter;

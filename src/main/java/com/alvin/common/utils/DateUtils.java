@@ -1,4 +1,4 @@
-package com.alvin.common;
+package com.alvin.common.utils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

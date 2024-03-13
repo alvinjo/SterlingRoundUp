@@ -1,10 +1,10 @@
 package com.alvin.roundup.service;
 
-import com.alvin.common.DateUtils;
+import com.alvin.common.utils.DateUtils;
 import com.alvin.roundup.repo.RoundUpRepo;
-import com.alvin.roundup.repo.domain.RoundUpJob;
-import com.alvin.roundup.repo.domain.RoundUpJobRequest;
-import com.alvin.roundup.repo.domain.RoundUpMessage;
+import com.alvin.roundup.domain.RoundUpJob;
+import com.alvin.roundup.domain.RoundUpJobRequest;
+import com.alvin.roundup.domain.RoundUpMessage;
 import com.alvin.starling.domain.FeedItems;
 import com.alvin.starling.service.SavingsService;
 import com.alvin.starling.service.TransactionFeedService;

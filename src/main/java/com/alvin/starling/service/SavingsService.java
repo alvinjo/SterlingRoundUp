@@ -1,7 +1,7 @@
 package com.alvin.starling.service;
 
-import com.alvin.common.SecurityUtils;
-import com.alvin.roundup.repo.domain.RoundUpJob;
+import com.alvin.common.utils.SecurityUtils;
+import com.alvin.roundup.domain.RoundUpJob;
 import com.alvin.starling.domain.SavingsGoalTransferResponseV2;
 import com.alvin.starling.domain.SavingsGoalsV2;
 import com.alvin.starling.domain.TopUpRequestV2;

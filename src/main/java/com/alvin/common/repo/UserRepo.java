@@ -1,4 +1,4 @@
-package com.alvin.common;
+package com.alvin.common.repo;
 
 import com.alvin.common.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,7 +1,7 @@
 package com.alvin.starling.service;
 
-import com.alvin.common.DateUtils;
-import com.alvin.common.SecurityUtils;
+import com.alvin.common.utils.DateUtils;
+import com.alvin.common.utils.SecurityUtils;
 import com.alvin.starling.domain.FeedItems;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;

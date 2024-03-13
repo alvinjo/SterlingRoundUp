@@ -1,5 +1,6 @@
-package com.alvin.common;
+package com.alvin.common.utils;
 
+import com.alvin.common.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

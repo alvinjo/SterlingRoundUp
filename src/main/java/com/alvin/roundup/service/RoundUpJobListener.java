@@ -1,7 +1,7 @@
 package com.alvin.roundup.service;
 
 
-import com.alvin.roundup.repo.domain.RoundUpMessage;
+import com.alvin.roundup.domain.RoundUpMessage;
 import com.alvin.starling.service.SavingsService;
 import org.pmw.tinylog.Logger;
 import org.springframework.beans.factory.annotation.Autowired;

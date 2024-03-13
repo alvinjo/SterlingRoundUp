@@ -1,16 +1,14 @@
 package com.alvin.roundup.rest;
 
-import com.alvin.roundup.repo.domain.RoundUpJob;
-import com.alvin.roundup.repo.domain.RoundUpJobRequest;
+import com.alvin.roundup.domain.RoundUpJob;
+import com.alvin.roundup.domain.RoundUpJobRequest;
 import com.alvin.roundup.service.RoundUpService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Set;
 
 @RestController

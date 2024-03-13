@@ -1,6 +1,6 @@
 package com.alvin.common.service;
 
-import com.alvin.common.UserRepo;
+import com.alvin.common.repo.UserRepo;
 import com.alvin.common.domain.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
