@@ -6,11 +6,13 @@ import com.alvin.roundup.repo.domain.RoundUpJob;
 import com.alvin.roundup.repo.domain.RoundUpJobRequest;
 import com.alvin.roundup.repo.domain.RoundUpMessage;
 import com.alvin.starling.domain.FeedItems;
+import com.alvin.starling.service.SavingsService;
 import com.alvin.starling.service.TransactionFeedService;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.core.JmsMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
@@ -31,13 +33,16 @@ public class RoundUpService {
 
     private RoundUpRepo repo;
 
+    private SavingsService savingsService;
+
     private TransactionFeedService transactionFeedService;
 
     private JmsMessagingTemplate jmsTemplate;
 
     @Autowired
-    public RoundUpService(RoundUpRepo repo, TransactionFeedService transactionFeedService, JmsMessagingTemplate jmsTemplate) {
+    public RoundUpService(RoundUpRepo repo, SavingsService savingsService, TransactionFeedService transactionFeedService, JmsMessagingTemplate jmsTemplate) {
         this.repo = repo;
+        this.savingsService = savingsService;
         this.transactionFeedService = transactionFeedService;
         this.jmsTemplate = jmsTemplate;
     }
@@ -90,6 +95,16 @@ public class RoundUpService {
         LocalDateTime endDateTime = LocalDateTime.of(LocalDate.parse(request.getEndDate()), LocalTime.MAX);
         if(startDateTime.isAfter(endDateTime)) {
             throw new IllegalArgumentException("Start date cannot be after end date");
+        }
+
+        var savingGoalsResponse = savingsService.getSavingsGoalsList(request.getAccountId());
+        if(savingGoalsResponse == null || CollectionUtils.isEmpty(savingGoalsResponse.getSavingsGoalsList())) {
+            throw new RuntimeException("Account doesn't have any savings goals setup");
+        }
+
+        boolean savingsGoalIdNotFound = savingGoalsResponse.getSavingsGoalsList().stream().noneMatch(savingsGoal -> request.getCategoryId().equals(savingsGoal.getSavingsGoalUid()));
+        if(savingsGoalIdNotFound) {
+            throw new IllegalArgumentException("Could not find the provided savings goal in the account");
         }
     }
 

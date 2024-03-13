@@ -49,10 +49,8 @@ public class FeedItems implements Serializable {
         private String country;
         private String spendingCategory;
         private String userNote;
-        //    private AssociatedFeedRoundUp roundUp;
         private boolean hasAttachment;
         private boolean hasReceipt;
-//    private BatchPaymentDetails batchPaymentDetails;
 
         public enum Status {
             UPCOMING,
