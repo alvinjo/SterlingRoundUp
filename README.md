@@ -109,6 +109,8 @@ transactions worth £2, making my tea expenses £4 which is over budget!.
 
 
 ## TODO
+- http://localhost:8161/admin/queues.jsp
+- http://localhost:8080/h2-console
 
 - finish docs
   - https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet
@@ -119,3 +121,4 @@ transactions worth £2, making my tea expenses £4 which is over budget!.
 - webhook for checking job status?
 - add log lines, follow from endpoint to repo, purposeful and efficient logs
 - endpoint to fetch the days that have been processed
+- handle possible db write fails

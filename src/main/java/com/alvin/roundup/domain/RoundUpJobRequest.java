@@ -7,7 +7,7 @@ import lombok.Setter;
 @Setter
 public class RoundUpJobRequest {
     private String accountId;
-    private String categoryId;
+    private String savingsGoalId;
     private String startDate;
     private String endDate;
 }

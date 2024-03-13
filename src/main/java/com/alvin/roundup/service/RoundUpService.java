@@ -1,10 +1,10 @@
 package com.alvin.roundup.service;
 
 import com.alvin.common.utils.DateUtils;
-import com.alvin.roundup.repo.RoundUpRepo;
 import com.alvin.roundup.domain.RoundUpJob;
 import com.alvin.roundup.domain.RoundUpJobRequest;
 import com.alvin.roundup.domain.RoundUpMessage;
+import com.alvin.roundup.repo.RoundUpRepo;
 import com.alvin.starling.domain.FeedItems;
 import com.alvin.starling.service.SavingsService;
 import com.alvin.starling.service.TransactionFeedService;
@@ -19,10 +19,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.alvin.roundup.service.RoundUpJobListener.ROUND_UP_JOB_DLQ;
 import static com.alvin.roundup.service.RoundUpJobListener.ROUND_UP_JOB_QUEUE;
@@ -65,8 +62,13 @@ public class RoundUpService {
         //split range into days of format yyyy-MM-dd
         List<LocalDate> dates = DateUtils.generateDateList(LocalDate.parse(jobRequest.getStartDate()), LocalDate.parse(jobRequest.getEndDate()));
 
-        //create and initialise a job map for calculating our round up totals
-        Map<LocalDate, RoundUpJob> jobMap = initialiseJobMap(dates, jobRequest.getAccountId(), jobRequest.getCategoryId());
+        //create and initialise new jobs map for calculating our round up totals
+        Map<LocalDate, RoundUpJob> jobMap = initialiseNewJobsMap(dates, jobRequest.getAccountId(), jobRequest.getSavingsGoalId());
+
+        //if there are no new jobs to process, return with the job ids
+        if(jobMap.isEmpty()) {
+          return new HashSet<>(dates);
+        }
 
         //perform transactions fetch on entire range
         FeedItems feedItems = transactionFeedService.fetchTransactionsWithinRange(startDateTime, endDateTime, jobRequest.getAccountId());
@@ -87,8 +89,8 @@ public class RoundUpService {
         if (!DateUtils.validDate(request.getStartDate()) || !DateUtils.validDate(request.getEndDate())) {
             throw new IllegalArgumentException("Invalid date range");
         }
-        if (!StringUtils.hasText(request.getAccountId()) || !StringUtils.hasText(request.getCategoryId())) {
-            throw new IllegalArgumentException("Account ID and Category ID are required");
+        if (!StringUtils.hasText(request.getAccountId()) || !StringUtils.hasText(request.getSavingsGoalId())) {
+            throw new IllegalArgumentException("Account ID and savings goal ID are required");
         }
 
         LocalDateTime startDateTime = LocalDateTime.of(LocalDate.parse(request.getStartDate()), LocalTime.MIN);
@@ -98,17 +100,17 @@ public class RoundUpService {
         }
 
         var savingGoalsResponse = savingsService.getSavingsGoalsList(request.getAccountId());
-        if(savingGoalsResponse == null || CollectionUtils.isEmpty(savingGoalsResponse.getSavingsGoalsList())) {
+        if(savingGoalsResponse == null || CollectionUtils.isEmpty(savingGoalsResponse.getSavingsGoals())) {
             throw new RuntimeException("Account doesn't have any savings goals setup");
         }
 
-        boolean savingsGoalIdNotFound = savingGoalsResponse.getSavingsGoalsList().stream().noneMatch(savingsGoal -> request.getCategoryId().equals(savingsGoal.getSavingsGoalUid()));
+        boolean savingsGoalIdNotFound = savingGoalsResponse.getSavingsGoals().stream().noneMatch(savingsGoal -> request.getSavingsGoalId().equals(savingsGoal.getSavingsGoalUid()));
         if(savingsGoalIdNotFound) {
             throw new IllegalArgumentException("Could not find the provided savings goal in the account");
         }
     }
 
-    private Map<LocalDate, RoundUpJob> initialiseJobMap(List<LocalDate> dates, String accountId, String categoryId){
+    private Map<LocalDate, RoundUpJob> initialiseNewJobsMap(List<LocalDate> dates, String accountId, String categoryId){
         Map<LocalDate, RoundUpJob> jobMap = new HashMap<>();
         dates.forEach(date -> {
             //check if we have already processed this job

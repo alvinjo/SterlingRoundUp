@@ -3,7 +3,7 @@ package com.alvin.starling.service;
 import com.alvin.common.utils.SecurityUtils;
 import com.alvin.roundup.domain.RoundUpJob;
 import com.alvin.starling.domain.SavingsGoalTransferResponseV2;
-import com.alvin.starling.domain.SavingsGoalsV2;
+import com.alvin.starling.domain.Spaces;
 import com.alvin.starling.domain.TopUpRequestV2;
 import com.google.gson.Gson;
 import org.pmw.tinylog.Logger;
@@ -64,11 +64,11 @@ public class SavingsService {
     }
 
 
-    public SavingsGoalsV2 getSavingsGoalsList(String accountId) {
+    public Spaces getSavingsGoalsList(String accountId) {
         var jsonMapper = new Gson();
         try{
             var getSavingsGoalsUri = UriComponentsBuilder.fromHttpUrl(starlingBaseUrl).path(accountPath)
-                    .pathSegment(accountId, "savings-goals").build().toUri();
+                    .pathSegment(accountId, "spaces").build().toUri();
 
             var request = HttpRequest.newBuilder(getSavingsGoalsUri)
                     .header("Authorization", "Bearer " + securityUtils.getUserAccessToken())
@@ -76,7 +76,7 @@ public class SavingsService {
 
             var clientResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            return jsonMapper.fromJson(clientResponse.body(), SavingsGoalsV2.class);
+            return jsonMapper.fromJson(clientResponse.body(), Spaces.class);
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e); //TODO
         }

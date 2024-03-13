@@ -25,6 +25,7 @@ public class RoundUpJob {
     }
 
     @Id
+    @Column(name = "ID")
     private String id;
 
     @Column(name = "ACCOUNT_ID")
@@ -42,13 +43,13 @@ public class RoundUpJob {
     private JobStatus status;
 
     @Transient
-    private long transferValue; //not persisted
+    private long transferValue;
 
     @Transient
-    private String currency; //not persisted
+    private String currency;
 
     @Transient
-    private boolean hasUnsettledTransactions; //not persisted
+    private boolean hasUnsettledTransactions;
 
     public void addValueToRoundUp(long value) {
         transferValue += value;
