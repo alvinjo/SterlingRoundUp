@@ -108,6 +108,8 @@ The ID field is the string representation of the date. Since a job processes a s
 We record the status of a job to not repeat the round up operations on day. Before we process a day, we must check if an existing job exists
 that is completed, and if so end the operation, but return job ids to the user.
 
+Having the date as the Id is especially handy since it makes partitioning the database very simple.
+
 <br>
 
 ***
@@ -183,3 +185,4 @@ transactions worth £2, making my tea expenses £4 which is over budget!.
 - Use retryable annotation for handling unexpected failures
 - Use a more appropriate data type for storing minorUnits, such as BigInteger
 - Perform account value check before performing savings goal transactions. We don't want the users account to go into negative.
+- Dockerise the application
