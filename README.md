@@ -182,3 +182,4 @@ transactions worth £2, making my tea expenses £4 which is over budget!.
 - Do proper error handling with appropriate responses
 - Use retryable annotation for handling unexpected failures
 - Use a more appropriate data type for storing minorUnits, such as BigInteger
+- Perform account value check before performing savings goal transactions. We don't want the users account to go into negative.

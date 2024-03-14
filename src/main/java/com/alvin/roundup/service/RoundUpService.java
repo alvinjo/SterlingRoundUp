@@ -116,7 +116,7 @@ public class RoundUpService {
             //check if we have already processed this job
             var existingJob = repo.findById(date.toString());
             if(existingJob.isEmpty() || RoundUpJob.JobStatus.COMPLETE != existingJob.get().getStatus()) {
-                jobMap.put(date, new RoundUpJob(date.toString(), accountId, categoryId));
+                jobMap.put(date, new RoundUpJob(date.toString(), accountId, categoryId).setStatus(RoundUpJob.JobStatus.PROCESSING));
             }
         });
         return jobMap;

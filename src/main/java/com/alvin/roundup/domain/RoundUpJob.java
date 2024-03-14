@@ -16,6 +16,7 @@ public class RoundUpJob {
 
     public enum JobStatus {
         COMPLETE,
+        PROCESSING
     }
 
     public RoundUpJob(String id, String accountId, String savingsGoalId) {
