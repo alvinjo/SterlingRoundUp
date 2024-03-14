@@ -32,10 +32,4 @@ public class RoundUpController {
         return new HttpEntity<>(roundUpService.createRoundUpJobs(jobRequest));
     }
 
-
-//    @PatchMapping
-//    public HttpEntity<List<SavingsGoal>> rerunRoundUpJobs() {
-//        return new HttpEntity<>(roundUpService.getSavings());
-//    }
-
 }

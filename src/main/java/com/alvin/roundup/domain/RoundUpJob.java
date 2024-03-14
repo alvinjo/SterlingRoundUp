@@ -18,10 +18,10 @@ public class RoundUpJob {
         COMPLETE,
     }
 
-    public RoundUpJob(String id, String accountId, String categoryId) {
+    public RoundUpJob(String id, String accountId, String savingsGoalId) {
         this.id = id;
         this.accountId = accountId;
-        this.categoryId = categoryId;
+        this.savingsGoalId = savingsGoalId;
     }
 
     @Id
@@ -31,13 +31,11 @@ public class RoundUpJob {
     @Column(name = "ACCOUNT_ID")
     private String accountId;
 
-    @Column(name = "CATEGORY_ID")
-    private String categoryId;
+    @Column(name = "SAVINGS_GOAL_ID")
+    private String savingsGoalId;
 
     @Column(name = "TRANSFER_ID")
     private String transferId;
-
-//    private FeedItems transactions;
 
     @Column(name = "STATUS")
     private JobStatus status;

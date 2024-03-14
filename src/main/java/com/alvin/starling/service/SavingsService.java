@@ -44,7 +44,7 @@ public class SavingsService {
             roundUpJob.setTransferId(UUID.randomUUID().toString());
 
             var savingsTransferUri = UriComponentsBuilder.fromHttpUrl(starlingBaseUrl).path(accountPath)
-                    .pathSegment(roundUpJob.getAccountId(), "savings-goals", roundUpJob.getCategoryId(), "add-money", roundUpJob.getTransferId()).build().toUri();
+                    .pathSegment(roundUpJob.getAccountId(), "savings-goals", roundUpJob.getSavingsGoalId(), "add-money", roundUpJob.getTransferId()).build().toUri();
 
             var body = new TopUpRequestV2(roundUpJob.getCurrency(), roundUpJob.getTransferValue());
 
