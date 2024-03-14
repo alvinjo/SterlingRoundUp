@@ -158,6 +158,7 @@ Data redundancy with multiple databases. Split the read/writes for masters and r
   - If I had more time, I would have my solution use AWS SQS. Much nicer to implement and it supports proper re-driving of DLQ
 - H2 DB
   - Would rather use a persistent storage solution. DynamoDB since it is cheap and easy to implement.
+  - Perhaps PostgreSQL since it's still structured and can also make use of stored procedures and other powerful features.
 
 <br>
 
