@@ -59,7 +59,7 @@ public class SavingsService {
             Logger.info("Transfer success: {}", transferResponse);
             return transferResponse.isSuccess();
         } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e); //TODO
+            throw new RuntimeException(e);
         }
     }
 
@@ -78,7 +78,7 @@ public class SavingsService {
 
             return jsonMapper.fromJson(clientResponse.body(), Spaces.class);
         } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e); //TODO
+            throw new RuntimeException(e);
         }
     }
 

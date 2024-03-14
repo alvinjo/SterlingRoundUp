@@ -179,3 +179,5 @@ transactions worth £2, making my tea expenses £4 which is over budget!.
 - Add endpoint or system for dlq redrives
 - Add proper spring security implementation
   - Fetch and set user object in security context when authenticating a provided jwt in the security filter chain.
+- Do proper error handling with appropriate responses
+- Use retryable annotation for handling unexpected failures
