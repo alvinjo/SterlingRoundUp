@@ -181,3 +181,4 @@ transactions worth £2, making my tea expenses £4 which is over budget!.
   - Fetch and set user object in security context when authenticating a provided jwt in the security filter chain.
 - Do proper error handling with appropriate responses
 - Use retryable annotation for handling unexpected failures
+- Use a more appropriate data type for storing minorUnits, such as BigInteger
