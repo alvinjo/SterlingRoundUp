@@ -1,10 +1,10 @@
-package com.alvin.starling.service;
+package com.alvin.sterling.service;
 
 import com.alvin.common.utils.SecurityUtils;
 import com.alvin.roundup.domain.RoundUpJob;
-import com.alvin.starling.domain.SavingsGoalTransferResponseV2;
-import com.alvin.starling.domain.Spaces;
-import com.alvin.starling.domain.TopUpRequestV2;
+import com.alvin.sterling.domain.SavingsGoalTransferResponseV2;
+import com.alvin.sterling.domain.Spaces;
+import com.alvin.sterling.domain.TopUpRequestV2;
 import com.google.gson.Gson;
 import org.pmw.tinylog.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +21,10 @@ import java.util.UUID;
 @Service
 public class SavingsService {
 
-    @Value("${starling.base.url}")
-    private String starlingBaseUrl;
+    @Value("${sterling.base.url}")
+    private String sterlingBaseUrl;
 
-    @Value("${starling.account.path}")
+    @Value("${sterling.account.path}")
     private String accountPath;
 
     private SecurityUtils securityUtils;
@@ -43,7 +43,7 @@ public class SavingsService {
         try {
             roundUpJob.setTransferId(UUID.randomUUID().toString());
 
-            var savingsTransferUri = UriComponentsBuilder.fromHttpUrl(starlingBaseUrl).path(accountPath)
+            var savingsTransferUri = UriComponentsBuilder.fromHttpUrl(sterlingBaseUrl).path(accountPath)
                     .pathSegment(roundUpJob.getAccountId(), "savings-goals", roundUpJob.getSavingsGoalId(), "add-money", roundUpJob.getTransferId()).build().toUri();
 
             var body = new TopUpRequestV2(roundUpJob.getCurrency(), roundUpJob.getTransferValue());
@@ -67,7 +67,7 @@ public class SavingsService {
     public Spaces getSavingsGoalsList(String accountId) {
         var jsonMapper = new Gson();
         try{
-            var getSavingsGoalsUri = UriComponentsBuilder.fromHttpUrl(starlingBaseUrl).path(accountPath)
+            var getSavingsGoalsUri = UriComponentsBuilder.fromHttpUrl(sterlingBaseUrl).path(accountPath)
                     .pathSegment(accountId, "spaces").build().toUri();
 
             var request = HttpRequest.newBuilder(getSavingsGoalsUri)

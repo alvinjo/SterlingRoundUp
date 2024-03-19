@@ -1,8 +1,8 @@
-package com.alvin.starling.service;
+package com.alvin.sterling.service;
 
 import com.alvin.common.utils.DateUtils;
 import com.alvin.common.utils.SecurityUtils;
-import com.alvin.starling.domain.FeedItems;
+import com.alvin.sterling.domain.FeedItems;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,10 +18,10 @@ import java.time.LocalDateTime;
 @Service
 public class TransactionFeedService {
 
-    @Value("${starling.base.url}")
-    private String starlingBaseUrl;
+    @Value("${sterling.base.url}")
+    private String sterlingBaseUrl;
 
-    @Value("${starling.feed.path}")
+    @Value("${sterling.feed.path}")
     private String feedPath;
 
     private SecurityUtils securityUtils;
@@ -37,7 +37,7 @@ public class TransactionFeedService {
     public FeedItems fetchTransactionsWithinRange(LocalDateTime start, LocalDateTime end, String accountId) throws IOException, InterruptedException {
         var jsonMapper = new Gson();
 
-        var transactionsFeedUri = UriComponentsBuilder.fromHttpUrl(starlingBaseUrl).path(feedPath)
+        var transactionsFeedUri = UriComponentsBuilder.fromHttpUrl(sterlingBaseUrl).path(feedPath)
                 .pathSegment("account", accountId, "settled-transactions-between")
                 .queryParam("minTransactionTimestamp", DateUtils.dateTimeToFormattedString(start))
                 .queryParam("maxTransactionTimestamp", DateUtils.dateTimeToFormattedString(end)).build().toUri();

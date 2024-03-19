@@ -1,4 +1,4 @@
-package com.alvin.starling.domain;
+package com.alvin.sterling.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

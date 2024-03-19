@@ -12,7 +12,7 @@
 - [TODO](#todo)
 
 ## Assumptions
-1. The starling bank round up API feature does not exist.
+1. The sterling bank round up API feature does not exist.
 2. Users are using this third party Round Up service to perform this round up saving feature.
 3. We do not want to round up the transactions of the current (and unfinished) day.
 4. In the event that a previously rounded up transaction has been refunded, do not "undo" the previous savings goal update. 
@@ -42,7 +42,7 @@
   
 <br>
 
-> Not using the starling `GET /accounts` or `GET /spaces` endpoints since the fetch can return multiple accounts and a decision 
+> Not using the sterling `GET /accounts` or `GET /spaces` endpoints since the fetch can return multiple accounts and a decision 
 must be made on which account to perform the round up on.
 I do not believe this kind of decision should be automated since the consequences are large.
 Performing the roundup on all accounts/spaces returned by the aforementioned endpoints, is also not ideal since the operation would be incredibly impactful with large consequences.
